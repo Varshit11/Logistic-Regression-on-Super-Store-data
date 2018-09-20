@@ -1,1 +1,1 @@
-# Logistic-Regression-on-Super-Store-data
+In this project I am using Super Store data which contains 9994 observation with 21 variables. I want to see the effect of other variables to the returns variable in the data set using logistic regression. As usual, data cleaning and exploratory data analysis will be done to understand the data.
