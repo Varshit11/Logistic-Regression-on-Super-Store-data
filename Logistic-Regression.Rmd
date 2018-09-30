@@ -1,0 +1,122 @@
+---
+title: "Logistic-Regression"
+author: "Varshit Dubey (CoE Pune)"
+date: "30 September 2018"
+output: github_document
+---
+
+# Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+library(ggthemes)
+library(corrgram)
+library(corrplot)
+library(caTools)
+library(sp)
+library(raster)
+library(usdm)
+library(lmtest)
+library(MASS)
+library(dplyr)
+library(plyr)
+library(InformationValue)
+library(caret)
+ 
+```
+
+* * *
+
+### Load the data set
+
+
+```{r}
+# load the data set 
+library(readxl)
+returns1 <- read_excel("returns1.xlsx")
+orders <- read_excel("orders.xlsx")
+
+```
+
+```{r}
+
+#View(data)
+str(returns1)
+returns2 <- returns1[,-c(4:8)]
+data1 <- join(orders, returns2, type = "left", by = "Order ID")
+#?join
+data1$Returned <- ifelse(is.na(data1$Returned),0,1)
+sum(is.na(data1$Returned))
+any(is.na(data1$Returned))
+
+
+```
+
+***
+
+## Part 1: Data
+
+The data set is comprised of 9994 observations of sales based on 21 variables.
+
+
+
+
+* * *
+
+## Part 2: Research question
+
+
+
+* * *
+
+Now before making the model I am removing some statistically insignificant variables like Product name, Country etc, also I am making a new variable named "days_diff" which is the difference in the shipping date and Order Date and I think that days_diff will have a role to play in the model. 
+
+```{r}
+#data$Returned <- factor(data$Returned)
+
+data1$days_diff <- as.Date(data1$`Ship Date`, format="%Y/%m/%d")-
+                  as.Date(data1$`Order Date`, format="%Y/%m/%d")
+
+
+# removing some variables..
+data2 <- data1[,-c(2,3,4,6,7,9,10,11,14,17,23,24)]
+
+
+str(data2)
+data2$days_diff <- as.numeric(data2$days_diff)
+
+set.seed(123)
+train=createDataPartition(data2$Returned, p=0.7,list=FALSE)
+
+Training=data2[train,]
+Testing=data2[-train,]
+
+
+sum(Training$Returned)
+sum(Testing$Returned)
+all <- glm(Returned ~.,data = Training, family = binomial(link = "logit"))
+summary(all)
+a <- stepAIC(all, direction = "both")
+summary(a)
+
+vif(data2[,c(1,7:12)])
+
+predicted <- predict(a, newdata = Testing, type="response")
+
+# this will show what should be the optimum cutoff for 0 and 1..
+optCutOff <- optimalCutoff(Testing$Returned, predicted)[1]
+misClassError(Testing$Returned, predicted, threshold = optCutOff)
+
+plotROC(actuals=Training$Returned,predictedScores=as.numeric(fitted(a)))
+Pred2=ifelse(predicted<optCutOff,0,1)
+
+
+caret::confusionMatrix(table(Testing$Returned,Pred2,dnn=list('actual','predicted')))
+```
+
+
+
