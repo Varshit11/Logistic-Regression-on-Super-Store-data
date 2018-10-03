@@ -76,10 +76,9 @@ The data set is comprised of 9994 observations of sales based on 21 variables.
 Now before making the model I am removing some statistically insignificant variables like Product name, Country etc, also I am making a new variable named "days_diff" which is the difference in the shipping date and Order Date and I think that days_diff will have a role to play in the model. 
 
 ```{r}
-#data$Returned <- factor(data$Returned)
 
-data1$days_diff <- as.Date(data1$`Ship Date`, format="%Y/%m/%d")-
-                  as.Date(data1$`Order Date`, format="%Y/%m/%d")
+#data1$days_diff <- as.Date(data1$`Ship Date`, format="%Y/%m/%d")-
+ #                 as.Date(data1$`Order Date`, format="%Y/%m/%d")
 
 
 # removing some variables..
@@ -87,7 +86,7 @@ data2 <- data1[,-c(2,3,4,6,7,9,10,11,14,17,23,24)]
 
 
 str(data2)
-data2$days_diff <- as.numeric(data2$days_diff)
+#data2$days_diff <- as.numeric(data2$days_diff)
 
 set.seed(123)
 train=createDataPartition(data2$Returned, p=0.7,list=FALSE)
@@ -103,7 +102,6 @@ summary(all)
 a <- stepAIC(all, direction = "both")
 summary(a)
 
-vif(data2[,c(1,7:12)])
 
 predicted <- predict(a, newdata = Testing, type="response")
 
